@@ -33,7 +33,7 @@ static void *check(void *arg)
 		if (len1 != len2 || memcmp(buf1, buf2, len1)) {
 			fprintf(stderr, "n = %llu; linux: %.*s; rv: %.*s\n",
 				n, len1, buf1, len2, buf2);
-			return (void*) n;
+			return (void*) -1;
 		}
 	}
 
@@ -45,7 +45,7 @@ static void *check(void *arg)
 		if (len1 != len2 || memcmp(buf1, buf2, len1)) {
 			fprintf(stderr, "n = %llu; linux: %.*s; rv: %.*s\n",
 				n, len1, buf1, len2, buf2);
-			return (void*) n;
+			return (void*) -1;
 		}
 	}
 

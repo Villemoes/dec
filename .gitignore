@@ -1,4 +1,5 @@
 *.o
 test32
 test64
-verify
+verify32
+verify64

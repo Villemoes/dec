@@ -9,7 +9,7 @@ CC = gcc
 
 .PHONY: all clean
 
-all: test64 test32 verify
+all: test64 verify64
 
 linux64.o rv64.o test64: CFLAGS += -m64
 linux32.o rv32.o test32: CFLAGS += -m32
@@ -22,9 +22,16 @@ test64: test.c linux64.o rv64.o
 test32: test.c linux32.o rv32.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -static
 
-verify: LDFLAGS += -pthread
-verify: linux64.o rv64.o
+verify32 verify64: LDFLAGS += -pthread
+
+verify64: verify.c linux64.o rv64.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+verify32: CFLAGS += -m32
+verify32: verify.c linux32.o rv32.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
 
 clean:
-	rm -f test64 test32 verify
+	rm -f test64 test32 verify64 verify32
 	rm -f *.o
