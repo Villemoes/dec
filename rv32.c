@@ -15,26 +15,43 @@ static const u16 two_char[100] = {
 #undef _
 };
 
+/* We assume this is only called with non-zero r. */
 static __noinline
 char *rv_put_dec_trunc8(char *buf, unsigned r)
 {
+	unsigned q;
+
+	/* 1 <= r < 10^8 */
 	if (r < 100)
-		goto out;
-	*((uint16_t*)buf) = two_char[r % 100];
-	r /= 100;
-	buf += 2;
-	if (r < 100)
-		goto out;
-	*((uint16_t*)buf) = two_char[r % 100];
-	r /= 100;
-	buf += 2;
-	if (r < 100)
-		goto out;
-	*((uint16_t*)buf) = two_char[r % 100];
-	r /= 100;
+		goto out_r;
+
+	/* 100 <= r < 10^8 */
+	q = (r * (u64)0x28f5c29) >> 32;
+	*((uint16_t*)buf) = two_char[r - 100*q];
 	buf += 2;
 
-out:
+	/* 1 <= q < 10^6 */
+	if (q < 100)
+		goto out_q;
+
+	/*  100 <= q < 10^6 */
+	r = (q * (u64)0x28f5c29) >> 32;
+	*((uint16_t*)buf) = two_char[q - 100*r];
+	buf += 2;
+
+	/* 1 <= r < 10^4 */
+	if (r < 100)
+		goto out_r;
+
+	/* 100 <= r < 10^4 */
+	q = (r * 0x147b) >> 19;
+	*((uint16_t*)buf) = two_char[r - 100*q];
+	buf += 2;
+out_q:
+	/* 1 <= q < 100 */
+	r = q;
+out_r:
+	/* 1 <= r < 100 */
 	*((uint16_t*)buf) = two_char[r];
 	buf += 2;
 	if (buf[-1] == '0')
@@ -43,13 +60,15 @@ out:
 }
 
 static noinline_for_stack
-void put_dec_full4(char *buf, unsigned q)
+void put_dec_full4(char *buf, unsigned r)
 {
-	unsigned r;
+	unsigned q;
 
-	*((u16*)buf) = two_char[q % 100];
-	q /= 100;
+	/* 0 <= r < 10^4 */
+	q = (r * 0x147b) >> 19;
+	*((u16*)buf) = two_char[r - 100*q];
 	buf += 2;
+	/* 0 <= q < 100 */
 	*((u16*)buf) = two_char[q];
 }
 
@@ -76,6 +95,8 @@ char *rv_put_dec(char *buf, unsigned long long n)
 	d2  = (h      ) & 0xffff;
 	d3  = (h >> 16); /* implicit "& 0xffff" */
 
+	/* n = 2^48 d3 + 2^32 d2 + 2^16 d1 + d0 
+	     = 281_4749_7671_0656 d3 + 42_9496_7296 d2 + 6_5536 d1 + d0 */
 	q   = 656 * d3 + 7296 * d2 + 5536 * d1 + ((uint32_t)n & 0xffff);
 	q = put_dec_helper4(buf, q);
 

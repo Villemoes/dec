@@ -15,43 +15,84 @@ static const u16 two_char[100] = {
 #undef _
 };
 
+/*
+ * It turns out there is precisely one 26 bit fixed-point
+ * approximation a of 64/100 for which x/100 == (x * (u64)a) >> 32
+ * holds for all x in [0, 10^8-1], namely a = 0x28f5c29. The actual
+ * range happens to be somewhat larger (x <= 1073741898), but that's
+ * irrelevant for our purpose.
+ *
+ * For dividing a number in the range [10^4, 10^6-1] by 100, we still
+ * need a 32x32->64 bit multiply, so we simply use the same constant.
+ *
+ * For dividing a number in the range [100, 10^4-1] by 100, there are
+ * several options. The simplest is (x * 0x147b) >> 19, which is valid
+ * for all x <= 43698.
+ */
+
 static __noinline
 char *rv_put_dec_full8(char *buf, unsigned r)
 {
-	*((uint16_t*)buf) = two_char[r % 100];
-	r /= 100;
+	unsigned q;
+
+	/* 0 <= r < 10^8 */
+	q = (r * (u64)0x28f5c29) >> 32;
+	*((uint16_t*)buf) = two_char[r - 100*q];
 	buf += 2;
-	*((uint16_t*)buf) = two_char[r % 100];
-	r /= 100;
+
+	/* 0 <= q < 10^6 */
+	r = (q * (u64)0x28f5c29) >> 32;
+	*((uint16_t*)buf) = two_char[q - 100*r];
 	buf += 2;
-	*((uint16_t*)buf) = two_char[r % 100];
-	r /= 100;
+
+	/* 0 <= r < 10^4 */
+	q = (r * 0x147b) >> 19;
+	*((uint16_t*)buf) = two_char[r - 100*q];
 	buf += 2;
-	*((uint16_t*)buf) = two_char[r];
+
+	/* 0 <= q < 100 */
+	*((uint16_t*)buf) = two_char[q];
 	buf += 2;
 	return buf;
 }
 
+/* We assume this is only called with non-zero r. */
 static __noinline
 char *rv_put_dec_trunc8(char *buf, unsigned r)
 {
+	unsigned q;
+
+	/* 1 <= r < 10^8 */
 	if (r < 100)
-		goto out;
-	*((uint16_t*)buf) = two_char[r % 100];
-	r /= 100;
-	buf += 2;
-	if (r < 100)
-		goto out;
-	*((uint16_t*)buf) = two_char[r % 100];
-	r /= 100;
-	buf += 2;
-	if (r < 100)
-		goto out;
-	*((uint16_t*)buf) = two_char[r % 100];
-	r /= 100;
+		goto out_r;
+
+	/* 100 <= r < 10^8 */
+	q = (r * (u64)0x28f5c29) >> 32;
+	*((uint16_t*)buf) = two_char[r - 100*q];
 	buf += 2;
 
-out:
+	/* 1 <= q < 10^6 */
+	if (q < 100)
+		goto out_q;
+
+	/*  100 <= q < 10^6 */
+	r = (q * (u64)0x28f5c29) >> 32;
+	*((uint16_t*)buf) = two_char[q - 100*r];
+	buf += 2;
+
+	/* 1 <= r < 10^4 */
+	if (r < 100)
+		goto out_r;
+
+	/* 100 <= r < 10^4 */
+	q = (r * 0x147b) >> 19;
+	*((uint16_t*)buf) = two_char[r - 100*q];
+	buf += 2;
+out_q:
+	/* 1 <= q < 100 */
+	r = q;
+out_r:
+	/* 1 <= r < 100 */
 	*((uint16_t*)buf) = two_char[r];
 	buf += 2;
 	if (buf[-1] == '0')
