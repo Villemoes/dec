@@ -15,7 +15,9 @@
 #define HI_START ULLONG_MAX
 #define HI_STOP  ULLONG_MAX - LO_STOP
 
-static int do_check(unsigned long long n)
+static unsigned long long lenfreq[NTHR][32];
+
+static int do_check(unsigned long long n, unsigned idx)
 {
 	char buf1[24];
 	char buf2[24];
@@ -28,6 +30,7 @@ static int do_check(unsigned long long n)
 			n, len1, buf1, len2, buf2);
 		return -1;
 	}
+	lenfreq[idx][len1]++;
 	return 0;
 }
 
@@ -39,20 +42,20 @@ static void *check(void *arg)
 	for (n = LO_START; n % NTHR != idx; ++n)
 		;
 	for (; n <= LO_STOP; n += NTHR) {
-		if (do_check(n))
+		if (do_check(n, idx))
 			return (void*) -1;
 	}
 
 	for (n = HI_START; n % NTHR != idx; --n)
 		;
 	for (; n >= HI_STOP; n -= NTHR) {
-		if (do_check(n))
+		if (do_check(n, idx))
 			return (void*) -1;
 	}
 
 	n = 2*idx + 1;
 	do {
-		if (do_check(n))
+		if (do_check(n, idx))
 			return (void*) -1;
 		n *= 17179869185ull;
 	} while (n != 2*idx + 1);
@@ -80,6 +83,13 @@ int main(void)
 			exit(1);
 		if (res != NULL)
 			ret = 1;
+	}
+
+	for (e = 1; e <= 20; ++e) {
+		unsigned long long s = 0;
+		for (i = 0; i < NTHR; ++i)
+			s += lenfreq[i][e];
+		printf("%d\t%llu\n", e, s);
 	}
 	
 	return ret;
