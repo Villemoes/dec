@@ -15,39 +15,47 @@
 #define HI_START ULLONG_MAX
 #define HI_STOP  ULLONG_MAX - LO_STOP
 
-
-static void *check(void *arg)
+static int do_check(unsigned long long n)
 {
 	char buf1[24];
 	char buf2[24];
 	int len1, len2;
 
+	len1 = linux_put_dec(buf1, n) - buf1;
+	len2 = rv_put_dec(buf2, n) - buf2;
+	if (len1 != len2 || memcmp(buf1, buf2, len1)) {
+		fprintf(stderr, "n = %llu; linux: %.*s; rv: %.*s\n",
+			n, len1, buf1, len2, buf2);
+		return -1;
+	}
+	return 0;
+}
+
+static void *check(void *arg)
+{
 	unsigned long idx = (unsigned long)arg;
 	unsigned long long n;
 
 	for (n = LO_START; n % NTHR != idx; ++n)
 		;
 	for (; n <= LO_STOP; n += NTHR) {
-		len1 = linux_put_dec(buf1, n) - buf1;
-		len2 = rv_put_dec(buf2, n) - buf2;
-		if (len1 != len2 || memcmp(buf1, buf2, len1)) {
-			fprintf(stderr, "n = %llu; linux: %.*s; rv: %.*s\n",
-				n, len1, buf1, len2, buf2);
+		if (do_check(n))
 			return (void*) -1;
-		}
 	}
 
 	for (n = HI_START; n % NTHR != idx; --n)
 		;
 	for (; n >= HI_STOP; n -= NTHR) {
-		len1 = linux_put_dec(buf1, n) - buf1;
-		len2 = rv_put_dec(buf2, n) - buf2;
-		if (len1 != len2 || memcmp(buf1, buf2, len1)) {
-			fprintf(stderr, "n = %llu; linux: %.*s; rv: %.*s\n",
-				n, len1, buf1, len2, buf2);
+		if (do_check(n))
 			return (void*) -1;
-		}
 	}
+
+	n = 2*idx + 1;
+	do {
+		if (do_check(n))
+			return (void*) -1;
+		n *= 17179869185ull;
+	} while (n != 2*idx + 1);
 
 	return NULL;
 }
