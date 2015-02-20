@@ -133,7 +133,7 @@ static void _do_test(const char *name, char* (*func)(char *, unsigned long long)
 
 static void report(const struct result *res)
 {
-	printf("%-25s %-20s %12.2f %20llu\n",
+	printf("%-25s %-16s %12.2f %16llu\n",
 		dist_name, res->name, (double)res->cycles/TOTAL_CONV, res->conversions);
 }
 static void delta(const struct result *r0, const struct result *r1)
@@ -147,7 +147,7 @@ static void delta(const struct result *r0, const struct result *r1)
 	conv_delta /= r0->conversions;
 	conv_delta *= 100;
 
-	printf("%-25s %-20s %+11.2f%% %+19.2f%%\n", "", "+/-", cyc_delta, conv_delta);
+	printf("%-25s %-16s %+11.2f%% %+15.2f%%\n", "", "+/-", cyc_delta, conv_delta);
 }
 
 static void compare(void)
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 	assert(gsl_rng_min(rng) == 0);
 	assert(gsl_rng_max(rng) == UINT32_MAX);
 
-	printf("%-25s %-20s %-12s %-20s\n", "Distribution", "Function", "Cycles/conv", "Conversions/1 sec");
+	printf("%-25s %-16s %-12s %-16s\n", "Distribution", "Function", "Cycles/conv", "Conv/1 sec");
 
 	fill_uniform();
 	compare();
