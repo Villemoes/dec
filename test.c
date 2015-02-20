@@ -14,6 +14,9 @@ static sig_atomic_t done;
 static u64 number[2048];
 static gsl_rng *rng;
 static char dist_name[64];
+
+#define TOTAL_CONV (REPS * ARRAY_SIZE(number))
+
 /*
  * To prevent gcc from optimizing the function calls away, we
  * accumulate the combined lengths into this global dummy.
@@ -130,7 +133,8 @@ static void _do_test(const char *name, char* (*func)(char *, unsigned long long)
 
 static void report(const struct result *res)
 {
-	printf("%-25s %-20s %12llu %20llu\n", dist_name, res->name, res->cycles, res->conversions);
+	printf("%-25s %-20s %12.2f %20llu\n",
+		dist_name, res->name, (double)res->cycles/TOTAL_CONV, res->conversions);
 }
 static void delta(const struct result *r0, const struct result *r1)
 {
@@ -166,7 +170,7 @@ int main(int argc, char *argv[])
 	assert(gsl_rng_min(rng) == 0);
 	assert(gsl_rng_max(rng) == UINT32_MAX);
 
-	printf("%-25s %-20s %-12s %-20s\n", "Distribution", "Function", "Cycles", "Conversions/1 sec");
+	printf("%-25s %-20s %-12s %-20s\n", "Distribution", "Function", "Cycles/conv", "Conversions/1 sec");
 
 	fill_uniform();
 	compare();
