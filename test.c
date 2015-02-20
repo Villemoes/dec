@@ -10,7 +10,7 @@
 
 #define REPS 1000
 
-static sig_atomic_t done;
+static volatile sig_atomic_t done;
 static u64 number[2048];
 static gsl_rng *rng;
 static char dist_name[64];
