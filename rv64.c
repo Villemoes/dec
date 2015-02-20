@@ -1,6 +1,6 @@
 #include "common.h"
 
-static const u16 two_char[100] = {
+static const u16 decpair[100] = {
 #define _(x) cpu_to_le16(((x % 10) | ((x / 10) << 8)) + 0x3030)
 	_( 0), _( 1), _( 2), _( 3), _( 4), _( 5), _( 6), _( 7), _( 8), _( 9),
 	_(10), _(11), _(12), _(13), _(14), _(15), _(16), _(17), _(18), _(19),
@@ -37,21 +37,21 @@ char *rv_put_dec_full8(char *buf, unsigned r)
 
 	/* 0 <= r < 10^8 */
 	q = (r * (u64)0x28f5c29) >> 32;
-	*((u16*)buf) = two_char[r - 100*q];
+	*((u16*)buf) = decpair[r - 100*q];
 	buf += 2;
 
 	/* 0 <= q < 10^6 */
 	r = (q * (u64)0x28f5c29) >> 32;
-	*((u16*)buf) = two_char[q - 100*r];
+	*((u16*)buf) = decpair[q - 100*r];
 	buf += 2;
 
 	/* 0 <= r < 10^4 */
 	q = (r * 0x147b) >> 19;
-	*((u16*)buf) = two_char[r - 100*q];
+	*((u16*)buf) = decpair[r - 100*q];
 	buf += 2;
 
 	/* 0 <= q < 100 */
-	*((u16*)buf) = two_char[q];
+	*((u16*)buf) = decpair[q];
 	buf += 2;
 	return buf;
 }
@@ -68,7 +68,7 @@ char *rv_put_dec_trunc8(char *buf, unsigned r)
 
 	/* 100 <= r < 10^8 */
 	q = (r * (u64)0x28f5c29) >> 32;
-	*((u16*)buf) = two_char[r - 100*q];
+	*((u16*)buf) = decpair[r - 100*q];
 	buf += 2;
 
 	/* 1 <= q < 10^6 */
@@ -77,7 +77,7 @@ char *rv_put_dec_trunc8(char *buf, unsigned r)
 
 	/*  100 <= q < 10^6 */
 	r = (q * (u64)0x28f5c29) >> 32;
-	*((u16*)buf) = two_char[q - 100*r];
+	*((u16*)buf) = decpair[q - 100*r];
 	buf += 2;
 
 	/* 1 <= r < 10^4 */
@@ -86,14 +86,14 @@ char *rv_put_dec_trunc8(char *buf, unsigned r)
 
 	/* 100 <= r < 10^4 */
 	q = (r * 0x147b) >> 19;
-	*((u16*)buf) = two_char[r - 100*q];
+	*((u16*)buf) = decpair[r - 100*q];
 	buf += 2;
 out_q:
 	/* 1 <= q < 100 */
 	r = q;
 out_r:
 	/* 1 <= r < 100 */
-	*((u16*)buf) = two_char[r];
+	*((u16*)buf) = decpair[r];
 	buf += 2;
 	if (buf[-1] == '0')
 		buf--;
