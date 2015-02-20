@@ -37,21 +37,21 @@ char *rv_put_dec_full8(char *buf, unsigned r)
 
 	/* 0 <= r < 10^8 */
 	q = (r * (u64)0x28f5c29) >> 32;
-	*((uint16_t*)buf) = two_char[r - 100*q];
+	*((u16*)buf) = two_char[r - 100*q];
 	buf += 2;
 
 	/* 0 <= q < 10^6 */
 	r = (q * (u64)0x28f5c29) >> 32;
-	*((uint16_t*)buf) = two_char[q - 100*r];
+	*((u16*)buf) = two_char[q - 100*r];
 	buf += 2;
 
 	/* 0 <= r < 10^4 */
 	q = (r * 0x147b) >> 19;
-	*((uint16_t*)buf) = two_char[r - 100*q];
+	*((u16*)buf) = two_char[r - 100*q];
 	buf += 2;
 
 	/* 0 <= q < 100 */
-	*((uint16_t*)buf) = two_char[q];
+	*((u16*)buf) = two_char[q];
 	buf += 2;
 	return buf;
 }
@@ -68,7 +68,7 @@ char *rv_put_dec_trunc8(char *buf, unsigned r)
 
 	/* 100 <= r < 10^8 */
 	q = (r * (u64)0x28f5c29) >> 32;
-	*((uint16_t*)buf) = two_char[r - 100*q];
+	*((u16*)buf) = two_char[r - 100*q];
 	buf += 2;
 
 	/* 1 <= q < 10^6 */
@@ -77,7 +77,7 @@ char *rv_put_dec_trunc8(char *buf, unsigned r)
 
 	/*  100 <= q < 10^6 */
 	r = (q * (u64)0x28f5c29) >> 32;
-	*((uint16_t*)buf) = two_char[q - 100*r];
+	*((u16*)buf) = two_char[q - 100*r];
 	buf += 2;
 
 	/* 1 <= r < 10^4 */
@@ -86,14 +86,14 @@ char *rv_put_dec_trunc8(char *buf, unsigned r)
 
 	/* 100 <= r < 10^4 */
 	q = (r * 0x147b) >> 19;
-	*((uint16_t*)buf) = two_char[r - 100*q];
+	*((u16*)buf) = two_char[r - 100*q];
 	buf += 2;
 out_q:
 	/* 1 <= q < 100 */
 	r = q;
 out_r:
 	/* 1 <= r < 100 */
-	*((uint16_t*)buf) = two_char[r];
+	*((u16*)buf) = two_char[r];
 	buf += 2;
 	if (buf[-1] == '0')
 		buf--;
