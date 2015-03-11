@@ -1,7 +1,7 @@
 #ifndef TIMING_H
 #define TIMING_H
 
-#if defined(__i386__) || defined(__x86_64__)
+#if USE_RDTSC && (defined(__i386__) || defined(__x86_64__))
 
 typedef unsigned long long abs_time_t;
 #define TIME_UNIT "cycles"
@@ -23,6 +23,18 @@ static inline unsigned long long rdtsc(void)
 #endif
 }
 #define get_time(val) (val = rdtsc())
+
+#elif 1
+
+#include <time.h>
+typedef struct timespec abs_time_t;
+#define TIME_UNIT "nsecs"
+static inline signed long long
+time_diff(const abs_time_t *a, const abs_time_t *b)
+{
+	return 1000000000LL*(a->tv_sec - b->tv_sec) + (a->tv_nsec - b->tv_nsec);
+}
+#define get_time(val) (clock_gettime(CLOCK_MONOTONIC, &val))
 
 #else
 
