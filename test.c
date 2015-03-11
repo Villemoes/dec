@@ -4,9 +4,9 @@
 #include <assert.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
-#include <rdtsc.h>
 
 #include "common.h"
+#include "timing.h"
 
 #define REPS 1000
 
@@ -31,7 +31,7 @@ static void set_done(int s)
 
 struct result {
 	const char         *name;
-	unsigned long long cycles;
+	signed long long   time;
 	unsigned long long conversions;
 };
 
@@ -103,18 +103,18 @@ static void fill_neg_binom(double param)
 static void _do_test(const char *name, char* (*func)(char *, unsigned long long), struct result *res)
 {
 	char buf[24];
-	unsigned long long start, stop;
+	abs_time_t start, stop;
 	unsigned long long iter;
 	unsigned total, r, i;
 
 	total = 0;
-	start = rdtsc();
+	get_time(start);
 	for (r = 0; r < REPS; ++r) {
 		for (i = 0; i < ARRAY_SIZE(number); ++i) {
 			total += func(buf, number[i]) - buf;
 		}
 	}
-	stop = rdtsc();
+	get_time(stop);
 
 	done = 0;
 	signal(SIGALRM, set_done);
@@ -124,7 +124,7 @@ static void _do_test(const char *name, char* (*func)(char *, unsigned long long)
 	}
 
 	res->name = name;
-	res->cycles = stop-start;
+	res->time = time_diff(&stop, &start);
 	res->conversions = iter;
 	dummy += total;
 }
@@ -134,20 +134,20 @@ static void _do_test(const char *name, char* (*func)(char *, unsigned long long)
 static void report(const struct result *res)
 {
 	printf("%-25s %-16s %12.2f %16llu\n",
-		dist_name, res->name, (double)res->cycles/TOTAL_CONV, res->conversions);
+		dist_name, res->name, (double)res->time/TOTAL_CONV, res->conversions);
 }
 static void delta(const struct result *r0, const struct result *r1)
 {
-	double cyc_delta, conv_delta;
+	double time_delta, conv_delta;
 
-	cyc_delta = (double)r1->cycles - (double)r0->cycles;
-	cyc_delta /= r0->cycles;
-	cyc_delta *= 100;
+	time_delta = (double)r1->time - (double)r0->time;
+	time_delta /= r0->time;
+	time_delta *= 100;
 	conv_delta = (double)r1->conversions - (double)r0->conversions;
 	conv_delta /= r0->conversions;
 	conv_delta *= 100;
 
-	printf("%-25s %-16s %+11.2f%% %+15.2f%%\n", "", "+/-", cyc_delta, conv_delta);
+	printf("%-25s %-16s %+11.2f%% %+15.2f%%\n", "", "+/-", time_delta, conv_delta);
 }
 
 static void compare(void)
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 	assert(gsl_rng_min(rng) == 0);
 	assert(gsl_rng_max(rng) == UINT32_MAX);
 
-	printf("%-25s %-16s %-12s %-16s\n", "Distribution", "Function", "Cycles/conv", "Conv/1 sec");
+	printf("%-25s %-16s %-12s %-16s\n", "Distribution", "Function", TIME_UNIT "/conv", "Conv/1 sec");
 
 	fill_uniform();
 	compare();
