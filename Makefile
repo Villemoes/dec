@@ -12,6 +12,9 @@ NTHR := $(strip $(shell getconf _NPROCESSORS_ONLN 2> /dev/null))
 ifneq ($(NTHR),)
 verify: CFLAGS += -DNTHR=$(NTHR)
 endif
+ifneq ($(USE_RDTSC),)
+test: CFLAGS += -DUSE_RDTSC=$(USE_RDTSC)
+endif
 
 TMPDIR ?= /tmp
 
