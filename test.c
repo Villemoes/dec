@@ -155,6 +155,12 @@ static void compare(void)
 
 int main(int argc, char *argv[])
 {
+	if (LONG_BIT != 8*sizeof(long)) {
+		fprintf(stderr, "error: compiled with LONG_BIT=%d but sizeof(long) = %zu\n",
+			LONG_BIT, sizeof(long));
+		exit(1);
+	}
+
 	rnd_init(argc > 1 ? atoi(argv[1]) : 0);
 
 	printf("%-25s %-16s %-12s %-16s\n", "Distribution", "Function", TIME_UNIT "/conv", "Conv/1 sec");

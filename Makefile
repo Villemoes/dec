@@ -34,6 +34,8 @@ CFLAGS += $(call cc-option,-Wmissing-parameter-type,)
 CFLAGS += $(call cc-option,-Wlogical-op,)
 CFLAGS += $(call cc-option,-Wmissing-prototypes,)
 
+CFLAGS += -DLONG_BIT=$(LONG_BIT)
+
 .PHONY: all clean
 
 all: test verify

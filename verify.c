@@ -79,6 +79,12 @@ int main(void)
 	int i, e, ret;
 	void *res;
 
+	if (LONG_BIT != 8*sizeof(long)) {
+		fprintf(stderr, "error: compiled with LONG_BIT=%d but sizeof(long) = %zu\n",
+			LONG_BIT, sizeof(long));
+		exit(1);
+	}
+
 	printf("Using %d threads\n", NTHR);
 	printf("Checking [%llu, %llu] and [%llu, %llu]\n",
 		LO_START, LO_STOP, HI_STOP, HI_START);
