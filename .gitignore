@@ -1,4 +1,5 @@
 *.o
+*.deps
 test32
 test64
 verify32

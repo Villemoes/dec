@@ -1,7 +1,8 @@
 WARNINGFLAGS=-Wall -Wextra -Wunused-parameter -Wmissing-parameter-type	\
 -Wlogical-op -Wmissing-prototypes
 
-CFLAGS = -O2 -g -std=gnu99 $(WARNINGFLAGS) -D_GNU_SOURCE
+CFLAGS = -O2 -g -std=gnu99 $(WARNINGFLAGS) -D_GNU_SOURCE -MMD -MF $@.deps
+-include $(wildcard *.deps)
 
 LDFLAGS = 
 
@@ -17,7 +18,7 @@ linux32.o rv32.o test32: CFLAGS += -m32
 test64 test32: LDFLAGS += -lgsl -lblas -lm -lrt
 
 test64: test.c linux64.o rv64.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $(filter-out $(wildcard *.h), $^) $(LDFLAGS)
 
 test32: test.c linux32.o rv32.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -static
@@ -35,3 +36,4 @@ verify32: verify.c linux32.o rv32.o
 clean:
 	rm -f test64 test32 verify64 verify32
 	rm -f *.o
+	rm -f *.deps
