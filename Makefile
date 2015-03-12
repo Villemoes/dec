@@ -2,7 +2,9 @@ WARNINGFLAGS=-Wall -Wextra -Wunused-parameter -Wmissing-parameter-type	\
 -Wlogical-op -Wmissing-prototypes
 
 CFLAGS := -O2 -g -std=gnu99 $(WARNINGFLAGS) -D_GNU_SOURCE
--include $(wildcard *.deps)
+-include $(wildcard .*.deps)
+dot-target = $(dir $@).$(notdir $@)
+depfile = $(dot-target).deps
 
 LDFLAGS = 
 
@@ -40,12 +42,12 @@ verify: linux$(LONG_BIT).o
 verify: rv$(LONG_BIT).o
 
 %.o: %.c
-	$(CC) $(CFLAGS) -MMD -MF $@.deps -c -o $@ $<
+	$(CC) $(CFLAGS) -MMD -MF $(depfile) -c -o $@ $<
 
 %: %.c
-	$(CC) $(CFLAGS) -MMD -MF $@.deps -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -MMD -MF $(depfile) -o $@ $(filter-out $(wildcard *.h), $^) $(LDFLAGS)
 
 clean:
 	rm -f test verify
 	rm -f *.o
-	rm -f *.deps
+	rm -f .*.deps
