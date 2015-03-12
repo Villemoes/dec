@@ -45,6 +45,7 @@ static void *check(void *arg)
 		if (do_check(n, idx))
 			return (void*) -1;
 	}
+	printf("Thread %lu: low range ok\n", idx);
 
 	for (n = HI_START; n % NTHR != idx; --n)
 		;
@@ -52,6 +53,7 @@ static void *check(void *arg)
 		if (do_check(n, idx))
 			return (void*) -1;
 	}
+	printf("Thread %lu: high range ok\n", idx);
 
 	n = 2*idx + 1;
 	do {
@@ -59,6 +61,7 @@ static void *check(void *arg)
 			return (void*) -1;
 		n *= 17179869185ull;
 	} while (n != 2*idx + 1);
+	printf("Thread %lu: mid range ok\n", idx);
 
 	return NULL;
 }
@@ -70,6 +73,9 @@ int main(void)
 	int i, e, ret;
 	void *res;
 
+	printf("Using %d threads\n", NTHR);
+	printf("Checking [%llu, %llu] and [%llu, %llu]\n",
+		LO_START, LO_STOP, HI_STOP, HI_START);
 	for (i = 0; i < NTHR; ++i) {
 		e = pthread_create(&thr[i], NULL, check, (void*)(long)i);
 		if (e)
@@ -85,6 +91,7 @@ int main(void)
 			ret = 1;
 	}
 
+	printf("Distribution of lengths checked:\n");
 	for (e = 1; e <= 20; ++e) {
 		unsigned long long s = 0;
 		for (i = 0; i < NTHR; ++i)
