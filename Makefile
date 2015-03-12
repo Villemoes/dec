@@ -1,7 +1,4 @@
-WARNINGFLAGS=-Wall -Wextra -Wunused-parameter -Wmissing-parameter-type	\
--Wlogical-op -Wmissing-prototypes
-
-CFLAGS := -O2 -g -std=gnu99 $(WARNINGFLAGS) -D_GNU_SOURCE
+CFLAGS := -O2 -g -std=gnu99 -Wall -Wextra -D_GNU_SOURCE
 -include $(wildcard .*.deps)
 dot-target = $(dir $@).$(notdir $@)
 depfile = $(dot-target).deps
@@ -27,10 +24,15 @@ try-run = $(shell set -e;               \
         fi;                             \
         rm -f "$$TMP" "$$TMPO")
 
+# Unknown warning options are not fatal by default with clang, so use -Werror.
 cc-option = $(call try-run,\
-        $(CC) $(CFLAGS) $(1) -c -x c /dev/null -o "$$TMPO",$(1),$(2))
+        $(CC) $(CFLAGS) -Werror $(1) -c -x c /dev/null -o "$$TMPO",$(1),$(2))
 
 CFLAGS += $(call cc-option,-m$(LONG_BIT),)
+CFLAGS += $(call cc-option,-Wunused-parameter,)
+CFLAGS += $(call cc-option,-Wmissing-parameter-type,)
+CFLAGS += $(call cc-option,-Wlogical-op,)
+CFLAGS += $(call cc-option,-Wmissing-prototypes,)
 
 .PHONY: all clean
 
