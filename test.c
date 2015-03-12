@@ -1,18 +1,17 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 #include <assert.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
 
 #include "common.h"
 #include "timing.h"
+#include "rnd.h"
 
 #define REPS 1000
 
 static volatile sig_atomic_t done;
 static u64 number[2048];
-static gsl_rng *rng;
 static char dist_name[64];
 
 #define TOTAL_CONV (REPS * ARRAY_SIZE(number))
@@ -51,14 +50,6 @@ glibc_put_dec(char *buf, unsigned long long n)
 }
 #endif
 
-static u64 rand_u64(void)
-{
-	u64 lo = gsl_rng_get(rng);
-	u64 hi = gsl_rng_get(rng);
-	return lo ^ (hi << 32);
-}
-
-
 static void fill_uniform(void)
 {
 	unsigned i;
@@ -66,7 +57,7 @@ static void fill_uniform(void)
 	snprintf(dist_name, sizeof(dist_name), "uniform([10, 2^64-1])");
 	for (i = 0; i < ARRAY_SIZE(number); ++i) {
 		do {
-			number[i] = rand_u64();
+			number[i] = rnd_u64();
 		} while (number[i] < 10);
 	}
 }
@@ -87,13 +78,11 @@ static void fill_neg_binom(double param)
 		 * negative binomial distribution provides such
 		 * behaviour.
 		 */
-		do {
-			idx = 3 + gsl_ran_negative_binomial(rng, param, 1);
-		} while (idx >= 64);
+		idx = rnd_neg_binom(param, 3, 64);
 		msb = 1ULL << idx;
 		mask = (msb << 1) - 1; /* this will DTRT even if idx==63 */
 		do {
-			number[i] = rand_u64();
+			number[i] = rnd_u64();
 			number[i] &= mask;
 			number[i] |= msb;
 		} while (number[i] < 10);
@@ -166,9 +155,7 @@ static void compare(void)
 
 int main(int argc, char *argv[])
 {
-	rng = gsl_rng_alloc(gsl_rng_mt19937);
-	assert(gsl_rng_min(rng) == 0);
-	assert(gsl_rng_max(rng) == UINT32_MAX);
+	rnd_init(argc > 1 ? atoi(argv[1]) : 0);
 
 	printf("%-25s %-16s %-12s %-16s\n", "Distribution", "Function", TIME_UNIT "/conv", "Conv/1 sec");
 
