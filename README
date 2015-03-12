@@ -1,0 +1,49 @@
+This is code for benchmarking and verifying the new decimal conversion
+implementation I've suggested for the linux kernel's lib/vsprintf.c
+file. See
+<http://thread.gmane.org/gmane.linux.kernel/1892035/focus=1905478> for
+the thread.
+
+Compiling should be as simple as running
+
+    make
+
+This will (hopefully) create two binaries, test and verify.
+
+* test runs a little microbenchmark for various distributions of input
+numbers, comparing the current code against the proposed new
+code.
+
+* verify is, as the name suggests, for verifying that the new code
+produces the same output as the old. We check the first and last 1e10
+numbers in the u64 range, as well as some "random" numbers
+in-between. This can take a long time, but if there are problems I
+expect they would show up early. It uses a number of threads, by
+default `getconf _NPROCESSORS_ONLN`, but you override that by setting
+the NTHR variable on the make command line.
+
+If `getconf LONG_BIT` doesn't work for some reason, you can explicitly
+ask for either the 32 or 64 bit code to be compiled by doing
+
+    make LONG_BIT=32
+
+This can also be used on a 64 bit platform such as x86_64 to generate
+code which will run on both i386 and x86_64. 
+
+If you're on x86 and want the times in cycles instead of nanoseconds
+you can build with
+
+    make USE_RDTSC=1
+
+
+I'd like to get benchmark numbers and verification on as many
+platforms as possible before this hits mainline. In particular, since
+I'm playing some endianness games, I'd like to hear from some
+big-endian architectures. Please either respond in the above-mentioned
+LKML thread or email me directly: linux (at) rasmusvillemoes.dk.
+
+
+2015-03-12
+Rasmus Villemoes
+
+      
