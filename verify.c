@@ -7,7 +7,7 @@
 #include "common.h"
 
 #ifndef NTHR
-#define NTHR 8
+#define NTHR 2
 #endif
 
 #define LO_START 10ULL

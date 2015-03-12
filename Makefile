@@ -10,6 +10,11 @@ LDFLAGS =
 
 CC = gcc
 LONG_BIT := $(shell getconf LONG_BIT)
+NTHR := $(strip $(shell getconf _NPROCESSORS_ONLN 2> /dev/null))
+
+ifneq ($(NTHR),)
+verify: CFLAGS += -DNTHR=$(NTHR)
+endif
 
 TMPDIR ?= /tmp
 
