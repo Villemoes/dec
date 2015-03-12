@@ -55,6 +55,12 @@ static void *check(void *arg)
 	}
 	printf("Thread %lu: high range ok\n", idx);
 
+	/*
+	 * This will also visit a few one-digit numbers, but both the
+	 * old and new code actually handle that just fine for
+	 * non-zero n (it's just irrelevant because all callers of
+	 * put_dec take a shortcut for n < 10).
+	 */
 	n = 2*idx + 1;
 	do {
 		if (do_check(n, idx))
