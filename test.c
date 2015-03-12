@@ -36,20 +36,6 @@ struct result {
 
 static struct result linux_result, rv_result;
 
-/*
- * Not a fair comparison since this also needs to decode the format
- * etc. Note that this also does output in the "right" (big-endian)
- * order, contrary to the other put_dec.
- */
-#ifdef DO_GLIBC
-static struct result glibc_result;
-static char*
-glibc_put_dec(char *buf, unsigned long long n)
-{
-	return buf + sprintf(buf, "%llu", n);
-}
-#endif
-
 static void fill_uniform(void)
 {
 	unsigned i;
@@ -146,11 +132,6 @@ static void compare(void)
 	report(&linux_result);
 	report(&rv_result);
 	delta(&linux_result, &rv_result);
-#ifdef DO_GLIBC
-	do_test(glibc);
-	report(&glibc_result);
-	delta(&linux_result, &glibc_result);
-#endif
 }
 
 int main(int argc, char *argv[])
