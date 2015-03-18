@@ -1,3 +1,7 @@
+.PHONY: all clean
+
+all: test verify
+
 CFLAGS := -O2 -g -std=gnu99 -Wall -Wextra -D_GNU_SOURCE
 -include $(wildcard .*.deps)
 dot-target = $(dir $@).$(notdir $@)
@@ -38,10 +42,6 @@ CFLAGS += $(call cc-option,-Wlogical-op,)
 CFLAGS += $(call cc-option,-Wmissing-prototypes,)
 
 CFLAGS += -DLONG_BIT=$(LONG_BIT)
-
-.PHONY: all clean
-
-all: test verify
 
 test: LDFLAGS += -lm -lrt
 
