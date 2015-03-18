@@ -94,9 +94,7 @@ out_q:
 out_r:
 	/* 1 <= r < 100 */
 	*((u16*)buf) = decpair[r];
-	buf += 2;
-	if (buf[-1] == '0')
-		buf--;
+	buf += r < 10 ? 1 : 2;
 	return buf;
 }
 
