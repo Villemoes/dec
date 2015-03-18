@@ -75,6 +75,16 @@ static void fill_neg_binom(double param)
 	}
 }
 
+static void fill_constant(unsigned long long n)
+{
+	unsigned i;
+
+	snprintf(dist_name, sizeof(dist_name), "%llu", n);
+	for (i = 0; i < ARRAY_SIZE(number); ++i) {
+		number[i] = n;
+	}
+}
+
 static void _do_test(const char *name, char* (*func)(char *, unsigned long long), struct result *res)
 {
 	char buf[24];
@@ -162,6 +172,33 @@ int main(int argc, char *argv[])
 	compare();
 
 	fill_neg_binom(0.50);
+	compare();
+
+	fill_constant(42ULL);
+	compare();
+
+	fill_constant(100ULL);
+	compare();
+
+	fill_constant(255ULL);
+	compare();
+
+	fill_constant(1234ULL);
+	compare();
+
+	fill_constant(27182ULL);
+	compare();
+
+	fill_constant(65535ULL);
+	compare();
+
+	fill_constant(4294967295ULL);
+	compare();
+
+	fill_constant(3141592653589793238ULL);
+	compare();
+
+	fill_constant(18446744073709551615ULL);
 	compare();
 
 	return dummy == 12345678ul;
